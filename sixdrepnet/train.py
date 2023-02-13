@@ -19,7 +19,7 @@ from torchvision import transforms
 import matplotlib
 from matplotlib import pyplot as plt
 from PIL import Image
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 
 from model import SixDRepNet, SixDRepNet2
 import utils
@@ -65,10 +65,12 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+# 将快照中的参数加载到模型中，这样可以方便地从某个快照处重新开始训练
 def load_filtered_state_dict(model, snapshot):
     # By user apaszke from discuss.pytorch.org
     model_dict = model.state_dict()
     snapshot = {k: v for k, v in snapshot.items() if k in model_dict}
+    # 将快照中地参数更新到model_dict中
     model_dict.update(snapshot)
     model.load_state_dict(model_dict)
 
@@ -76,6 +78,8 @@ def load_filtered_state_dict(model, snapshot):
 if __name__ == '__main__':
 
     args = parse_args()
+    # cudnn.enabled 设置为 True 意味着在处理图像数据时，
+    # 会使用 CuDNN 进行加速，以提高模型的处理速度。
     cudnn.enabled = True
     num_epochs = args.num_epochs
     batch_size = args.batch_size
@@ -102,24 +106,34 @@ if __name__ == '__main__':
 
     print('Loading data.')
 
+    # 图像归一化，对图像数据进行标准化的一种方法
+    # 不同的数据集图像的均值和标准差不一定一样，
+    # 所以我在尝试不同的数据集的时候可能要先计算一下这两个值
     normalize = transforms.Normalize(
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225])
 
+    # 对图像进行一系列处理，最终输出224x224大小的图像
     transformations = transforms.Compose([transforms.RandomResizedCrop(size=224,scale=(0.8,1)),
                                           transforms.ToTensor(),
                                           normalize])
 
+    # 加载的数据库最终会通过transformations进行预处理
     pose_dataset = datasets.getDataset(
         args.dataset, args.data_dir, args.filename_list, transformations)
 
+    # 创建一个加载器，这里的num_workers指的是线程数
     train_loader = torch.utils.data.DataLoader(
         dataset=pose_dataset,
         batch_size=batch_size,
         shuffle=True,
         num_workers=4)
 
+    # 尝试将模型和数据加载到GPU上，如果此处的gpu为False则在CPU上跑
     model.cuda(gpu)
+    # FIXME：我自己做的第一个尝试，用余弦损失函数来做
+    # 这种尝试失败了
+    # crit = torch.nn.CosineEmbeddingLoss().cuda(gpu)
     crit = GeodesicLoss().cuda(gpu) #torch.nn.MSELoss().cuda(gpu)
     optimizer = torch.optim.Adam(model.parameters(), args.lr)
 
@@ -138,16 +152,24 @@ if __name__ == '__main__':
         iter = 0
         for i, (images, gt_mat, _, _) in enumerate(train_loader):
             iter += 1
+            # 将数据转换为张量并转移到GPU
             images = torch.Tensor(images).cuda(gpu)
 
-            # Forward pass
+            # Forward pass，用backbone提取出特征
+            # 这里的model会自动调用forward函数对images进行处理
             pred_mat = model(images)
 
-            # Calc loss
-            loss = crit(gt_mat.cuda(gpu), pred_mat)
+            # Calc loss，计算损失函数
+            loss = crit(gt_mat.cuda(gpu), pred_mat, torch.Tensor(1))
 
+            # 以下三行代码是反向传播步骤中的一个整体
+            # 在反向传播之前，需要先将梯度清零，以防受到前一次迭代的影响。
             optimizer.zero_grad()
+            # PyTorch 的反向传播函数，它将根据当前的损失函数计算梯度。
             loss.backward()
+            # 使用梯度更新模型参数。具体而言，
+            # 这个函数将使用优化器的方法（例如随机梯度下降，Adam 等），
+            # 根据当前的梯度更新模型的参数。
             optimizer.step()
 
             loss_sum += loss.item()
@@ -163,16 +185,22 @@ if __name__ == '__main__':
                       )
                       )
         
+        # 根据前面的配置决定是否调整学习率
         if b_scheduler:
             scheduler.step()
 
         # Save models at numbered epochs.
         if epoch % 1 == 0 and epoch < num_epochs:
             print('Taking snapshot...',
-                  torch.save({
-                      'epoch': epoch,
-                      'model_state_dict': model.state_dict(),
-                      'optimizer_state_dict': optimizer.state_dict(),
-                  }, 'output/snapshots/' + summary_name + '/' + args.output_string +
-                      '_epoch_' + str(epoch+1) + '.tar')
+                # 下面的是原有代码，我改成更下面的这种直接保存模型的了
+                # 改进后得到的结果准确度更高
+                #   torch.save({
+                #       'epoch': epoch,
+                #       'model_state_dict': model.state_dict(),
+                #       'optimizer_state_dict': optimizer.state_dict(),
+                #   }, 'output/snapshots/' + summary_name + '/' + args.output_string +
+                #       '_epoch_' + str(epoch+1) + '.tar')
+                  torch.save(model
+                  , 'output/snapshots/' + summary_name + '/' + args.output_string +
+                      '_epoch_' + str(epoch+1) + '.pth')
                   )
