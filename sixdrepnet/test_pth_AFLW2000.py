@@ -173,11 +173,11 @@ if __name__ == '__main__':
                     vis0 = cv2.fromarray(vis)
                     cv2.CvtColor(vis0, vis2, cv2.CV_GRAY2BGR)
                     cv2_img = cv2.imread(vis2)
-                utils.draw_axis(cv2_img, y_pred_deg[0], p_pred_deg[0], r_pred_deg[0], tdx=200, tdy=200, size=100)
+                # utils.draw_axis(cv2_img, y_pred_deg[0], p_pred_deg[0], r_pred_deg[0], tdx=200, tdy=200, size=100)
                 #utils.plot_pose_cube(cv2_img, y_pred_deg[0], p_pred_deg[0], r_pred_deg[0], size=200)
-                cv2.imshow("Test", cv2_img)
-                cv2.waitKey(5)
-                cv2.imwrite(os.path.join('output/img/',name+'.png'),cv2_img)
+                # cv2.imshow("Test", cv2_img)
+                # cv2.waitKey(5)
+                # cv2.imwrite(os.path.join('output/img/',name+'.png'),cv2_img)
                 
         print('Yaw: %.4f, Pitch: %.4f, Roll: %.4f, MAE: %.4f' % (
             yaw_error / total, pitch_error / total, roll_error / total,
