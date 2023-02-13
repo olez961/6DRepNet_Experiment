@@ -1,2 +1,6 @@
-/datasets/*
-/output
+datasets
+output
+*.pth
+*.log
+test*/
+__*__/

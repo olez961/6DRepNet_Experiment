@@ -31,8 +31,6 @@ def parse_args():
     """Parse input arguments."""
     parser = argparse.ArgumentParser(
         description='Head pose estimation using the 6DRepNet.')
-    # 下面这段代码在用的时候这个参数可能被当作一个bool值
-    # 所以我把原代码的默认值0改成1了
     parser.add_argument(
         '--gpu', dest='gpu_id', help='GPU device id to use [0]',
         default=0, type=int)
@@ -42,7 +40,7 @@ def parse_args():
         default=80, type=int)
     parser.add_argument(
         '--batch_size', dest='batch_size', help='Batch size.',
-        default=80, type=int)
+        default=256, type=int)
     parser.add_argument(
         '--lr', dest='lr', help='Base learning rate.',
         default=0.0001, type=float)

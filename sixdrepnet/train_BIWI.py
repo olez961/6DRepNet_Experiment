@@ -26,13 +26,18 @@ import utils
 import datasets
 from loss import GeodesicLoss
 
+"""
+使用示例：
+python train_BIWI.py --batch_size 256
+或
+CUDA_VISIBLE_DEVICES=1 python train_BIWI.py --batch_size 256
+在第二种情况中，我们尝试用第二块显卡训练模型
+"""
 
 def parse_args():
     """Parse input arguments."""
     parser = argparse.ArgumentParser(
         description='Head pose estimation using the 6DRepNet.')
-    # 下面这段代码在用的时候这个参数可能被当作一个bool值
-    # 所以我把原代码的默认值0改成1了
     parser.add_argument(
         '--gpu', dest='gpu_id', help='GPU device id to use [0]',
         default=0, type=int)
@@ -42,21 +47,21 @@ def parse_args():
         default=80, type=int)
     parser.add_argument(
         '--batch_size', dest='batch_size', help='Batch size.',
-        default=80, type=int)
+        default=256, type=int)
     parser.add_argument(
         '--lr', dest='lr', help='Base learning rate.',
         default=0.0001, type=float)
     parser.add_argument('--scheduler', default=False, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument(
         '--dataset', dest='dataset', help='Dataset type.',
-        default='Pose_300W_LP', type=str) #Pose_300W_LP
+        default='BIWI', type=str) #Pose_300W_LP
     parser.add_argument(
         '--data_dir', dest='data_dir', help='Directory path for data.',
-        default='datasets/300W_LP', type=str)#BIWI_70_30_train.npz
+        default='datasets/BIWI_train.npz', type=str)#BIWI_70_30_train.npz 300W_LP
     parser.add_argument(
         '--filename_list', dest='filename_list',
         help='Path to text file containing relative paths for every example.',
-        default='datasets/300W_LP/files.txt', type=str) #BIWI_70_30_train.npz #300W_LP/files.txt
+        default='datasets/BIWI_train.npz', type=str) #BIWI_70_30_train.npz #300W_LP/files.txt
     parser.add_argument(
         '--output_string', dest='output_string',
         help='String appended to output snapshots.', default='', type=str)
