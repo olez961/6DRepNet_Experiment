@@ -154,7 +154,8 @@ model_urls = {
     "convnext_small_22k": "https://dl.fbaipublicfiles.com/convnext/convnext_small_22k_224.pth",
     "convnext_base_22k": "https://dl.fbaipublicfiles.com/convnext/convnext_base_22k_224.pth",
     "convnext_large_22k": "https://dl.fbaipublicfiles.com/convnext/convnext_large_22k_224.pth",
-    "convnext_xlarge_22k": "https://dl.fbaipublicfiles.com/convnext/convnext_xlarge_22k_224.pth",
+    # "convnext_xlarge_22k": "https://dl.fbaipublicfiles.com/convnext/convnext_xlarge_22k_224.pth",
+    "convnext_xlarge_22k": "/home/ubuntu/work_space/6DRepNet_Experiment/sixdrepnet/convnext_xlarge_22k_1k_224_ema.pth",
 }
 
 @register_model
@@ -171,7 +172,8 @@ def convnext_small(pretrained=False,in_22k=False, **kwargs):
     model = ConvNeXt(depths=[3, 3, 27, 3], dims=[96, 192, 384, 768], **kwargs)
     if pretrained:
         url = model_urls['convnext_small_22k'] if in_22k else model_urls['convnext_small_1k']
-        checkpoint = torch.hub.load_state_dict_from_url(url=url, map_location="cpu")
+        # checkpoint = torch.hub.load_state_dict_from_url(url=url, map_location="cpu")
+        checkpoint = torch.load(url, map_location="cpu")
         model.load_state_dict(checkpoint["model"])
     return model
 
@@ -194,11 +196,12 @@ def convnext_large(pretrained=False, in_22k=False, **kwargs):
     return model
 
 @register_model
-def convnext_xlarge(pretrained=False, in_22k=False, **kwargs):
+def convnext_xlarge(pretrained=False, in_22k=True, **kwargs):
     model = ConvNeXt(depths=[3, 3, 27, 3], dims=[256, 512, 1024, 2048], **kwargs)
     if pretrained:
         assert in_22k, "only ImageNet-22K pre-trained ConvNeXt-XL is available; please set in_22k=True"
         url = model_urls['convnext_xlarge_22k']
-        checkpoint = torch.hub.load_state_dict_from_url(url=url, map_location="cpu")
+        # checkpoint = torch.hub.load_state_dict_from_url(url=url, map_location="cpu")
+        checkpoint = torch.load(url, map_location="cpu")
         model.load_state_dict(checkpoint["model"])
     return model

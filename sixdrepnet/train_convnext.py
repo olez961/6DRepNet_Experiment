@@ -42,7 +42,7 @@ def parse_args():
         default=80, type=int)
     parser.add_argument(
         '--batch_size', dest='batch_size', help='Batch size.',
-        default=32, type=int)
+        default=80, type=int)
     parser.add_argument(
         '--lr', dest='lr', help='Base learning rate.',
         default=0.0001, type=float)

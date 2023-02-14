@@ -42,7 +42,7 @@ def parse_args():
         default=80, type=int)
     parser.add_argument(
         '--batch_size', dest='batch_size', help='Batch size.',
-        default=32, type=int)
+        default=80, type=int)
     parser.add_argument(
         '--lr', dest='lr', help='Base learning rate.',
         default=0.0001, type=float)
@@ -65,7 +65,7 @@ def parse_args():
         default='', type=str)
     parser.add_argument(
         '--other_information', dest='other_information', help='Other information for marking.',
-        default='GeodesicLoss', type=str)
+        default='MSE', type=str)
 
     args = parser.parse_args()
     return args
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     # FIXME：我自己做的第一个尝试，用余弦损失函数来做
     # 这种尝试失败了
     # crit = torch.nn.CosineEmbeddingLoss().cuda(gpu)
-    crit = GeodesicLoss().cuda(gpu) #torch.nn.MSELoss().cuda(gpu)
+    crit = torch.nn.MSELoss().cuda(gpu) #GeodesicLoss().cuda(gpu)
     optimizer = torch.optim.Adam(model.parameters(), args.lr)
 
 

@@ -269,6 +269,8 @@ func_dict = {
 'RepVGG-B3g2': create_RepVGG_B3g2,
 'RepVGG-B3g4': create_RepVGG_B3g4,
 'RepVGG-D2se': create_RepVGG_D2se,      #   Updated at April 25, 2021. This is not reported in the CVPR paper.
+'convnext_small_1k_224': None,
+'convnext_xlarge_22k_1k_224': None,
 }
 def get_RepVGG_func_by_name(name):
     return func_dict[name]
