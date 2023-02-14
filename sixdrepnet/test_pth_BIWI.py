@@ -24,8 +24,10 @@ from model import SixDRepNet
 import utils
 import datasets
 
-# 使用示例：
-# python test_biwi.py --snapshot output/snapshots/SixDRepNet_1676219655_bs256_biwi/_epoch_80.pth
+"""
+使用示例：
+python test_biwi.py --snapshot output/snapshots/SixDRepNet_1676219655_bs256_biwi/_epoch_80.pth
+"""
 
 def parse_args():
     """Parse input arguments."""
