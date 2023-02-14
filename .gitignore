@@ -1,5 +1,7 @@
 datasets
 output
+
+*[ _]copy.py
 *.pth
 *.log
 test*/

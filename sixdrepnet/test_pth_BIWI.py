@@ -48,7 +48,7 @@ def parse_args():
                         default='', type=str)
     parser.add_argument('--batch_size',
                         dest='batch_size', help='Batch size.',
-                        default=64, type=int)
+                        default=256, type=int)
     parser.add_argument('--show_viz',
                         dest='show_viz', help='Save images with pose cube.',
                         default=False, type=bool)

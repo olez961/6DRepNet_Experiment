@@ -26,15 +26,22 @@ class SixDRepNet(nn.Module):
             backbone.load_state_dict(ckpt)
 
         self.layer0, self.layer1, self.layer2, self.layer3, self.layer4 = backbone.stage0, backbone.stage1, backbone.stage2, backbone.stage3, backbone.stage4
+        # 全局平均池化层gap用于将特征的尺寸降到1x1
+        # 把nn.AdaptiveAvgPool2d的输出尺寸设置为1，意味着对每一个输入特征图，会产生一个元素的输出。
+        # 把整个特征图投影到一个点上，并对整个特征图求得其平均值。
         self.gap = nn.AdaptiveAvgPool2d(output_size=1)
 
         last_channel = 0
+        # 遍历网络的第4个部分（self.layer4）中的每个模块，
+        # 并通过判断该模块是否是一个卷积层并且模块名称包含"rbr_dense"或"rbr_reparam"。
+        # 如果是这样的模块，它会记录该卷积层的输出通道数作为最后一个通道。
         for n, m in self.layer4.named_modules():
             if ('rbr_dense' in n or 'rbr_reparam' in n) and isinstance(m, nn.Conv2d):
                 last_channel = m.out_channels
 
+        # fea_dim可能是feature dimension的缩写
         fea_dim = last_channel
-
+        # 线性层linear_reg将特征的尺寸映射到6维
         self.linear_reg = nn.Linear(fea_dim, 6)
 
     def forward(self, x):
