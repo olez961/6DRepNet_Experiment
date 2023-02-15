@@ -29,6 +29,11 @@ class SixDRepNet(nn.Module):
                         v in checkpoint.items()}  # strip the names
                 self.backbone.load_state_dict(ckpt)
         else:
+            # FIXED: In this situation, the model you used may be updated again and again.
+            # I should load the checkpoint like the code above.
+            # But if the convnext will make a new model, I can avoid this nauty thing.
+            # T checked the convnext.py(23.02.15), the code below use the checkpoint tech,
+            # good news, my worry seems unnessessary.
             self.backbone = convnext.convnext_small(pretrained=True)
 
         if self.repvgg_fn:
@@ -60,6 +65,7 @@ class SixDRepNet(nn.Module):
         if self.repvgg_fn:
             fea_dim = last_channel
         else:
+            # 这里我直接将维度固定为768了，为了适配convnext_small的特征提取层输出
             fea_dim = 768
         # 线性层linear_reg将特征的尺寸映射到6维
         self.linear_reg = nn.Linear(fea_dim, 6)
