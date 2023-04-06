@@ -19,7 +19,7 @@ from face_detection import RetinaFace
 import matplotlib
 from matplotlib import pyplot as plt
 from PIL import Image
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 
 from model import SixDRepNet
 import utils
@@ -31,9 +31,12 @@ def parse_args():
     parser.add_argument('--gpu',
                         dest='gpu_id', help='GPU device id to use [0]',
                         default=0, type=int)
+    # 尝试使用video作为应用源
+    parser.add_argument("--video", type=str, default=None,
+                        help="Path of video to process i.e. /path/to/vid.mp4")
     parser.add_argument('--cam',
                         dest='cam_id', help='Camera device id to use [0]',
-                        default=0, type=int)
+                        default=None, type=int) # 此处default在原文件中是0
     parser.add_argument('--snapshot',
                         dest='snapshot', help='Name of model snapshot.',
                         default='', type=str)
@@ -54,7 +57,10 @@ if __name__ == '__main__':
     args = parse_args()
     cudnn.enabled = True
     gpu = args.gpu_id
-    cam = args.cam_id
+    cam = args.cam_id if args.cam_id is not None else args.video
+    if(cam is None):
+        print('Camera or video not specified as argument, selecting default camera node (0) as input...')
+        cam = 0
     snapshot_path = args.snapshot
     model = SixDRepNet(backbone_name='RepVGG-B1g2',
                        backbone_file='',
@@ -66,13 +72,16 @@ if __name__ == '__main__':
     detector = RetinaFace(gpu_id=gpu)
 
     # Load snapshot
-    saved_state_dict = torch.load(os.path.join(
-        snapshot_path), map_location='cpu')
+    # 由于我保存的快照格式和原来的不一样，所以下面的代码对我不太适用
+    # saved_state_dict = torch.load(os.path.join(
+    #     snapshot_path), map_location='cpu')
 
-    if 'model_state_dict' in saved_state_dict:
-        model.load_state_dict(saved_state_dict['model_state_dict'])
-    else:
-        model.load_state_dict(saved_state_dict)
+    # if 'model_state_dict' in saved_state_dict:
+    #     model.load_state_dict(saved_state_dict['model_state_dict'])
+    # else:
+    #     model.load_state_dict(saved_state_dict)
+
+    model = torch.load("/home/ubuntu/work_space/6DRepNet_Experiment/sixdrepnet/output/snapshots/SixDRepNet_1680038195_bs100_Pose_300W_LP_GeodesicLoss_Convnext/_epoch_30.pth")
     model.cuda(gpu)
 
     # Test the Model
@@ -80,13 +89,29 @@ if __name__ == '__main__':
 
     cap = cv2.VideoCapture(cam)
 
+    # 以下代码用于保存处理后的视频文件
+    # 获取视频的FPS、宽度和高度
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    # 定义视频编码器
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+
+    # 创建输出视频的VideoWriter对象
+    out = cv2.VideoWriter('../../datasets/test/output_video_new.mp4', fourcc, fps, (width, height))
+
     # Check if the webcam is opened correctly
     if not cap.isOpened():
         raise IOError("Cannot open webcam")
+    
+    frame_count = 0
+    time_consume = 0
 
     with torch.no_grad():
         while True:
             ret, frame = cap.read()
+            frame_count += 1
 
             faces = detector(frame)
 
@@ -121,7 +146,9 @@ if __name__ == '__main__':
                 start = time.time()
                 R_pred = model(img)
                 end = time.time()
+                time_consume += (end - start)*1000.
                 print('Head pose estimation: %2f ms' % ((end - start)*1000.))
+                print("Processed frame per second: %2f fps" % (1000. / (time_consume / frame_count)))
 
                 euler = utils.compute_euler_angles_from_rotation_matrices(
                     R_pred)*180/np.pi
@@ -133,5 +160,6 @@ if __name__ == '__main__':
                 utils.plot_pose_cube(frame,  y_pred_deg, p_pred_deg, r_pred_deg, x_min + int(.5*(
                     x_max-x_min)), y_min + int(.5*(y_max-y_min)), size=bbox_width)
 
+            out.write(frame)
             cv2.imshow("Demo", frame)
             cv2.waitKey(5)

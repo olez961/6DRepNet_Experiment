@@ -100,6 +100,8 @@ if __name__ == '__main__':
     if not os.path.exists('output/snapshots/{}'.format(summary_name)):
         os.makedirs('output/snapshots/{}'.format(summary_name))
 
+    record = open(os.path.join('output/snapshots/{}'.format(summary_name), summary_name), mode = 'a')
+
     model = SixDRepNet(backbone_name='convnext_small_1k_224', #RepVGG-B1g2 convnext_xlarge_22k_1k_224 
                         backbone_file='/home/ubuntu/work_space/6DRepNet_Experiment/sixdrepnet/RepVGG-B1g2-train.pth',
                         deploy=False,
@@ -189,6 +191,14 @@ if __name__ == '__main__':
                           loss.item(),
                       )
                       )
+                record.write('Epoch [%d/%d], Iter [%d/%d] Loss: '
+                      '%.6f' % (
+                          epoch+1,
+                          num_epochs,
+                          i+1,
+                          len(pose_dataset)//batch_size,
+                          loss.item(),
+                      ))
         
         # 根据前面的配置决定是否调整学习率
         if b_scheduler:

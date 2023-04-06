@@ -16,3 +16,18 @@ class GeodesicLoss(nn.Module):
         theta = torch.acos(torch.clamp(cos, -1+self.eps, 1-self.eps))
          
         return torch.mean(theta)
+    
+class CosineSimilarityLoss(nn.Module):
+    def __init__(self):
+        super(CosineSimilarityLoss, self).__init__()
+
+    def forward(self, A, B):
+        """
+        A, B: 3D tensors of shape (batch_size, num_vectors, vector_size)
+        """
+        dot_product = torch.sum(torch.mul(A, B), dim=2)
+        norm_A = torch.norm(A, p=2, dim=2)
+        norm_B = torch.norm(B, p=2, dim=2)
+        cosine_similarity = dot_product / (norm_A * norm_B)
+        loss = 1 - cosine_similarity.mean()
+        return loss

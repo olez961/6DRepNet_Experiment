@@ -25,6 +25,7 @@ from model import SixDRepNet, SixDRepNet2
 import utils
 import datasets
 from loss import GeodesicLoss
+from loss import CosineSimilarityLoss
 
 
 def parse_args():
@@ -65,7 +66,7 @@ def parse_args():
         default='', type=str)
     parser.add_argument(
         '--other_information', dest='other_information', help='Other information for marking.',
-        default='GeodesicLoss', type=str)
+        default='MSE', type=str)
 
     args = parser.parse_args()
     return args
@@ -102,6 +103,9 @@ if __name__ == '__main__':
 
     record = open(os.path.join('output/snapshots/{}'.format(summary_name), summary_name), mode = 'a+', buffering=1)
 
+    # convnext_xlarge模型非常吃显存，不是很推荐使用
+    # 目前整个训练代码我已经硬编码成small类型的convnext了
+    # 如果需要使用其它类型的convnext需要再做一些改变
     model = SixDRepNet(backbone_name='convnext_small_1k_224', #RepVGG-B1g2 convnext_xlarge_22k_1k_224 
                         backbone_file='/home/ubuntu/work_space/6DRepNet_Experiment/sixdrepnet/RepVGG-B1g2-train.pth',
                         deploy=False,
@@ -141,7 +145,7 @@ if __name__ == '__main__':
     # FIXME：我自己做的第一个尝试，用余弦损失函数来做
     # 这种尝试失败了
     # crit = torch.nn.CosineEmbeddingLoss().cuda(gpu)
-    crit = GeodesicLoss().cuda(gpu) #torch.nn.MSELoss().cuda(gpu)
+    crit = CosineSimilarityLoss().cuda(gpu) #GeodesicLoss().cuda(gpu)
     optimizer = torch.optim.Adam(model.parameters(), args.lr)
 
 

@@ -25,6 +25,7 @@ from model import SixDRepNet, SixDRepNet2
 import utils
 import datasets
 from loss import GeodesicLoss
+from loss import CosineSimilarityLoss
 
 
 def parse_args():
@@ -99,6 +100,8 @@ if __name__ == '__main__':
 
     if not os.path.exists('output/snapshots/{}'.format(summary_name)):
         os.makedirs('output/snapshots/{}'.format(summary_name))
+
+    record = open(os.path.join('output/snapshots/{}'.format(summary_name), summary_name), mode = 'a+', buffering=1)
 
     # convnext_xlarge模型非常吃显存，不是很推荐使用
     # 目前整个训练代码我已经硬编码成small类型的convnext了
@@ -192,6 +195,14 @@ if __name__ == '__main__':
                           loss.item(),
                       )
                       )
+                record.write('Epoch [%d/%d], Iter [%d/%d] Loss: '
+                      '%.6f\n' % (
+                          epoch+1,
+                          num_epochs,
+                          i+1,
+                          len(pose_dataset)//batch_size,
+                          loss.item(),
+                      ))
         
         # 根据前面的配置决定是否调整学习率
         if b_scheduler:
@@ -212,3 +223,4 @@ if __name__ == '__main__':
                   , 'output/snapshots/' + summary_name + '/' + args.output_string +
                       '_epoch_' + str(epoch+1) + '.pth')
                   )
+    record.close()

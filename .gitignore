@@ -2,7 +2,11 @@ datasets
 datasets/*
 output
 results
+ignore*
 
+
+processed.txt
+*.sh
 -*
 ravdess_preprocessing/*.txt
 *[ _]copy.py

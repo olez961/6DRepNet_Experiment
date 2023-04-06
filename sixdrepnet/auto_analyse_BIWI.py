@@ -2,7 +2,7 @@ import os
 import subprocess
 
 # 指定文件夹的路径
-folder_path = './output/snapshots/SixDRepNet_1676219655_bs256_biwi'
+folder_path = './output/snapshots/SixDRepNet_1679497782_bs100_BIWI_GeodesicLoss_Convnext'
 
 # 获取文件夹中的所有文件名
 files = os.listdir(folder_path)

@@ -78,7 +78,8 @@ class SixDRepNet(nn.Module):
             x = self.layer3(x)
             x = self.layer4(x)
         else:
-            for i in range(4):
+            # 所以这里实际上根本没有经过阶段四的处理
+            for i in range(4):  # 0, 1, 2, 3
                 x = self.backbone.downsample_layers[i](x)
                 x = self.backbone.stages[i](x)
         x= self.gap(x)
