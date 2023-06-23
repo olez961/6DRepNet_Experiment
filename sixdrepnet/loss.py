@@ -16,7 +16,8 @@ class GeodesicLoss(nn.Module):
         theta = torch.acos(torch.clamp(cos, -1+self.eps, 1-self.eps))
          
         return torch.mean(theta)
-    
+
+# 这里实际上是余弦距离损失函数
 class CosineSimilarityLoss(nn.Module):
     def __init__(self):
         super(CosineSimilarityLoss, self).__init__()

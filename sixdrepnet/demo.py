@@ -62,7 +62,7 @@ if __name__ == '__main__':
         print('Camera or video not specified as argument, selecting default camera node (0) as input...')
         cam = 0
     snapshot_path = args.snapshot
-    model = SixDRepNet(backbone_name='RepVGG-B1g2',
+    model = SixDRepNet(backbone_name='convnext_small_1k_224', # RepVGG-B1g2
                        backbone_file='',
                        deploy=True,
                        pretrained=False)
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 
     # 创建输出视频的VideoWriter对象
-    out = cv2.VideoWriter('../../datasets/test/output_video_new.mp4', fourcc, fps, (width, height))
+    out = cv2.VideoWriter('/home/ubuntu/Videos/教学视频/example/student_output_video_new.mp4', fourcc, fps, (width, height))
 
     # Check if the webcam is opened correctly
     if not cap.isOpened():
@@ -115,10 +115,11 @@ if __name__ == '__main__':
 
             faces = detector(frame)
 
+            start = time.time()
             for box, landmarks, score in faces:
 
                 # Print the location of each face in this image
-                if score < .95:
+                if score < .25:
                     continue
                 x_min = int(box[0])
                 y_min = int(box[1])
@@ -143,23 +144,34 @@ if __name__ == '__main__':
                 if c == 27:
                     break
 
-                start = time.time()
                 R_pred = model(img)
-                end = time.time()
-                time_consume += (end - start)*1000.
-                print('Head pose estimation: %2f ms' % ((end - start)*1000.))
-                print("Processed frame per second: %2f fps" % (1000. / (time_consume / frame_count)))
-
+                
                 euler = utils.compute_euler_angles_from_rotation_matrices(
                     R_pred)*180/np.pi
                 p_pred_deg = euler[:, 0].cpu()
                 y_pred_deg = euler[:, 1].cpu()
                 r_pred_deg = euler[:, 2].cpu()
 
-                #utils.draw_axis(frame, y_pred_deg, p_pred_deg, r_pred_deg, left+int(.5*(right-left)), top, size=100)
-                utils.plot_pose_cube(frame,  y_pred_deg, p_pred_deg, r_pred_deg, x_min + int(.5*(
-                    x_max-x_min)), y_min + int(.5*(y_max-y_min)), size=bbox_width)
+                utils.draw_axis(frame, 
+                                y_pred_deg, 
+                                p_pred_deg, 
+                                r_pred_deg, 
+                                x_min + int(.5*(x_max-x_min)), 
+                                y_min + int(.5*(y_max-y_min)), 
+                                size=bbox_width) # origin size is 25
+                # utils.plot_pose_cube(frame,  
+                #                      y_pred_deg, 
+                #                      p_pred_deg, 
+                #                      r_pred_deg, 
+                #                      x_min + int(.5*(x_max-x_min)), 
+                #                      y_min + int(.5*(y_max-y_min)), 
+                #                      size=bbox_width)
+            end = time.time()
+            time_consume += (end - start)*1000.
+            print('Head pose estimation: %2f ms' % ((end - start)*1000.))
+            print("Processed frame per second: %2f fps" % (1000. / (time_consume / frame_count)))
+
 
             out.write(frame)
-            cv2.imshow("Demo", frame)
+            # cv2.imshow("Demo", frame)
             cv2.waitKey(5)
